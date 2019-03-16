@@ -33,7 +33,7 @@ var pathingTextures = []string{"\"PathTextures\\10x10Simple.tga\"", "\"PathTextu
 var weaponTypes = []string{"\"_\"", "\"normal\"", "\"instant\"", "\"artillery\"", "\"aline\"", "\"missile\"", "\"msplash\"", "\"mbounce\"", "\"mline\""}
 var attackTypes = []string{"\"_\"", "\"normal\"", "\"pierce\"", "\"siege\"", "\"spells\"", "\"chaos\"", "\"magic\"", "\"hero\""}
 var deathTypes = []string{"0", "1", "2", "3"}
-var defenseTypes = []string{"\"normal\"", "\"small\"", "\"medium\"", "\"large\"", "\"fortified\"", "\"hero\"", "\"divine\"", "\"unarmored\""}
+var defenseTypes = []string{"\"normal\"", "\"small\"", "\"medium\"", "\"large\"", "\"fort\"", "\"hero\"", "\"divine\"", "\"unarmored\""}
 var ubersplatTypes = []string{"\"UMED\"", "\"EMDB\"", "\"HMED\"", "\"OMED\"", "\"EMDA\"", "\"ESMA\"", "\"HSMA\"", "\"HCAS\"", "\"NDGS\"", "\"DPSE\"", "\"DPSW\"", "\"NGOL\"", "\"OLAR\"", "\"ULAR\"", "\"HTOW\"", "\"ESMB\"", "\"OSMA\"", "\"HLAR\"", "\"USMA\"", "\"NLAR\""}
 
 // const MAXINT = 9999999
