@@ -431,19 +431,71 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		wFormOne.projectileHoming.SetChecked(false)
 	}
 	wFormOne.projectileSpeed.SetText(unitFunc.Missilespeed.String)
-	wFormOne.aoeFull.SetText(unit.UnitWeapons.Farea1.String)
-	wFormOne.aoeMedium.SetText(unit.UnitWeapons.Harea1.String)
-	wFormOne.aoeSmall.SetText(unit.UnitWeapons.Qarea1.String)
-	wFormOne.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact1.String)
-	wFormOne.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact1.String)
-	wFormOne.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss1.String)
-	wFormOne.weaponRange.SetText(unit.UnitWeapons.RangeN1.String)
-	wFormOne.cooldown.SetText(unit.UnitWeapons.Cool1.String)
-	wFormOne.damageBase.SetText(unit.UnitWeapons.Dmgplus1.String)
-	wFormOne.damageDice.SetText(unit.UnitWeapons.Dice1.String)
-	wFormOne.damageSides.SetText(unit.UnitWeapons.Sides1.String)
-	wFormOne.damagePoint.SetText(unit.UnitWeapons.Dmgpt1.String)
-	wFormOne.backswingPoint.SetText(unit.UnitWeapons.BackSw1.String)
+	if unit.UnitWeapons.Farea1.Valid && unit.UnitWeapons.Farea1.String != "\"-\"" {
+		wFormOne.aoeFull.SetText(unit.UnitWeapons.Farea1.String)
+	} else {
+		wFormOne.aoeFull.SetText("0")
+	}
+	if unit.UnitWeapons.Harea1.Valid && unit.UnitWeapons.Harea1.String != "\"-\"" {
+		wFormOne.aoeMedium.SetText(unit.UnitWeapons.Harea1.String)
+	} else {
+		wFormOne.aoeMedium.SetText("0")
+	}
+	if unit.UnitWeapons.Qarea1.Valid && unit.UnitWeapons.Qarea1.String != "\"-\"" {
+		wFormOne.aoeSmall.SetText(unit.UnitWeapons.Qarea1.String)
+	} else {
+		wFormOne.aoeSmall.SetText("0")
+	}
+	if unit.UnitWeapons.Hfact1.Valid && unit.UnitWeapons.Hfact1.String != "\"-\"" {
+		wFormOne.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact1.String)
+	} else {
+		wFormOne.aoeFactorMedium.SetText("0")
+	}
+	if unit.UnitWeapons.Qfact1.Valid && unit.UnitWeapons.Qfact1.String != "\"-\"" {
+		wFormOne.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact1.String)
+	} else {
+		wFormOne.aoeFactorSmall.SetText("0")
+	}
+	if unit.UnitWeapons.DamageLoss1.Valid && unit.UnitWeapons.DamageLoss1.String != "\"-\"" {
+		wFormOne.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss1.String)
+	} else {
+		wFormOne.aoeFactorLoss.SetText("0")
+	}
+	if unit.UnitWeapons.RangeN1.Valid && unit.UnitWeapons.RangeN1.String != "\"-\"" {
+		wFormOne.weaponRange.SetText(unit.UnitWeapons.RangeN1.String)
+	} else {
+		wFormOne.weaponRange.SetText("0")
+	}
+	if unit.UnitWeapons.Cool1.Valid && unit.UnitWeapons.Cool1.String != "\"-\"" {
+		wFormOne.cooldown.SetText(unit.UnitWeapons.Cool1.String)
+	} else {
+		wFormOne.cooldown.SetText("0")
+	}
+	if unit.UnitWeapons.Dmgplus1.Valid && unit.UnitWeapons.Dmgplus1.String != "\"-\"" {
+		wFormOne.damageBase.SetText(unit.UnitWeapons.Dmgplus1.String)
+	} else {
+		wFormOne.damageBase.SetText("0")
+	}
+	if unit.UnitWeapons.Dice1.Valid && unit.UnitWeapons.Dice1.String != "\"-\"" {
+		wFormOne.damageDice.SetText(unit.UnitWeapons.Dice1.String)
+	} else {
+		wFormOne.damageDice.SetText("0")
+	}
+	if unit.UnitWeapons.Sides1.Valid && unit.UnitWeapons.Sides1.String != "\"-\"" {
+		wFormOne.damageSides.SetText(unit.UnitWeapons.Sides1.String)
+	} else {
+		wFormOne.damageSides.SetText("0")
+	}
+	if unit.UnitWeapons.Dmgpt1.Valid && unit.UnitWeapons.Dmgpt1.String != "\"-\"" {
+		wFormOne.damagePoint.SetText(unit.UnitWeapons.Dmgpt1.String)
+	} else {
+		wFormOne.damagePoint.SetText("0")
+	}
+	if unit.UnitWeapons.BackSw1.Valid && unit.UnitWeapons.BackSw1.String != "\"-\"" {
+		wFormOne.backswingPoint.SetText(unit.UnitWeapons.BackSw1.String)
+	} else {
+		wFormOne.backswingPoint.SetText("0")
+	}
 	attackType := strings.Replace(unit.UnitWeapons.AtkType1.String, "\"", "", -1)
 	var attackTypeSelected null.Int
 	switch attackType {
@@ -708,19 +760,71 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		wFormTwo.projectileHoming.SetChecked(false)
 	}
 	wFormTwo.projectileSpeed.SetText(unitFunc.Missilespeed.String)
-	wFormTwo.aoeFull.SetText(unit.UnitWeapons.Farea2.String)
-	wFormTwo.aoeMedium.SetText(unit.UnitWeapons.Harea2.String)
-	wFormTwo.aoeSmall.SetText(unit.UnitWeapons.Qarea2.String)
-	wFormTwo.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact2.String)
-	wFormTwo.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact2.String)
-	wFormTwo.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss2.String)
-	wFormTwo.weaponRange.SetText(unit.UnitWeapons.RangeN2.String)
-	wFormTwo.cooldown.SetText(unit.UnitWeapons.Cool2.String)
-	wFormTwo.damageBase.SetText(unit.UnitWeapons.Dmgplus2.String)
-	wFormTwo.damageDice.SetText(unit.UnitWeapons.Dice2.String)
-	wFormTwo.damageSides.SetText(unit.UnitWeapons.Sides2.String)
-	wFormTwo.damagePoint.SetText(unit.UnitWeapons.Dmgpt2.String)
-	wFormTwo.backswingPoint.SetText(unit.UnitWeapons.BackSw2.String)
+	if unit.UnitWeapons.Farea2.Valid && unit.UnitWeapons.Farea2.String != "\"-\"" {
+		wFormTwo.aoeFull.SetText(unit.UnitWeapons.Farea2.String)
+	} else {
+		wFormTwo.aoeFull.SetText("0")
+	}
+	if unit.UnitWeapons.Harea2.Valid && unit.UnitWeapons.Harea2.String != "\"-\"" {
+		wFormTwo.aoeMedium.SetText(unit.UnitWeapons.Harea2.String)
+	} else {
+		wFormTwo.aoeMedium.SetText("0")
+	}
+	if unit.UnitWeapons.Qarea2.Valid && unit.UnitWeapons.Qarea2.String != "\"-\"" {
+		wFormTwo.aoeSmall.SetText(unit.UnitWeapons.Qarea2.String)
+	} else {
+		wFormTwo.aoeSmall.SetText("0")
+	}
+	if unit.UnitWeapons.Hfact2.Valid && unit.UnitWeapons.Hfact2.String != "\"-\"" {
+		wFormTwo.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact2.String)
+	} else {
+		wFormTwo.aoeFactorMedium.SetText("0")
+	}
+	if unit.UnitWeapons.Qfact2.Valid && unit.UnitWeapons.Qfact2.String != "\"-\"" {
+		wFormTwo.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact2.String)
+	} else {
+		wFormTwo.aoeFactorSmall.SetText("0")
+	}
+	if unit.UnitWeapons.DamageLoss2.Valid && unit.UnitWeapons.DamageLoss2.String != "\"-\"" {
+		wFormTwo.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss2.String)
+	} else {
+		wFormTwo.aoeFactorLoss.SetText("0")
+	}
+	if unit.UnitWeapons.RangeN2.Valid && unit.UnitWeapons.RangeN2.String != "\"-\"" {
+		wFormTwo.weaponRange.SetText(unit.UnitWeapons.RangeN2.String)
+	} else {
+		wFormTwo.weaponRange.SetText("0")
+	}
+	if unit.UnitWeapons.Cool2.Valid && unit.UnitWeapons.Cool2.String != "\"-\"" {
+		wFormTwo.cooldown.SetText(unit.UnitWeapons.Cool2.String)
+	} else {
+		wFormTwo.cooldown.SetText("0")
+	}
+	if unit.UnitWeapons.Dmgplus2.Valid && unit.UnitWeapons.Dmgplus2.String != "\"-\"" {
+		wFormTwo.damageBase.SetText(unit.UnitWeapons.Dmgplus2.String)
+	} else {
+		wFormTwo.damageBase.SetText("0")
+	}
+	if unit.UnitWeapons.Dice2.Valid && unit.UnitWeapons.Dice2.String != "\"-\"" {
+		wFormTwo.damageDice.SetText(unit.UnitWeapons.Dice2.String)
+	} else {
+		wFormTwo.damageDice.SetText("0")
+	}
+	if unit.UnitWeapons.Sides2.Valid && unit.UnitWeapons.Sides2.String != "\"-\"" {
+		wFormTwo.damageSides.SetText(unit.UnitWeapons.Sides2.String)
+	} else {
+		wFormTwo.damageSides.SetText("0")
+	}
+	if unit.UnitWeapons.Dmgpt2.Valid && unit.UnitWeapons.Dmgpt2.String != "\"-\"" {
+		wFormTwo.damagePoint.SetText(unit.UnitWeapons.Dmgpt2.String)
+	} else {
+		wFormTwo.damagePoint.SetText("0")
+	}
+	if unit.UnitWeapons.BackSw2.Valid && unit.UnitWeapons.BackSw2.String != "\"-\"" {
+		wFormTwo.backswingPoint.SetText(unit.UnitWeapons.BackSw2.String)
+	} else {
+		wFormTwo.backswingPoint.SetText("0")
+	}
 	attackType2 := strings.Replace(unit.UnitWeapons.AtkType2.String, "\"", "", -1)
 	var attackTypeSelected2 null.Int
 	switch attackType2 {
@@ -974,10 +1078,34 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 
 	// Set Data Form
 	builds := strings.Replace(unitFunc.Builds.String, "\"", "", -1)
-	dForm.acquisition.SetText(unit.UnitWeapons.Acquire.String)
+	sells := strings.Replace(unitFunc.Sellitems.String, "\"", "", -1)
+	upgradesTo := strings.Replace(unitFunc.Upgrade.String, "\"", "", -1)
+	trains := strings.Replace(unitFunc.Trains.String, "\"", "", -1)
 	dForm.builds.SetText(builds)
-	dForm.health.SetText(unit.UnitBalance.HP.String)
-	dForm.mana.SetText(unit.UnitBalance.ManaN.String)
+	dForm.sells.SetText(sells)
+	dForm.upgradesTo.SetText(upgradesTo)
+	dForm.trains.SetText(trains)
+	dForm.acquisition.SetText(unit.UnitWeapons.Acquire.String)
+	if unit.UnitBalance.HP.Valid {
+		dForm.health.SetText(unit.UnitBalance.HP.String)
+	} else {
+		dForm.health.SetText("0")
+	}
+	if unit.UnitBalance.RegenHP.Valid {
+		dForm.healthRegen.SetText(unit.UnitBalance.RegenHP.String)
+	} else {
+		dForm.healthRegen.SetText("0")
+	}
+	if unit.UnitBalance.ManaN.Valid {
+		dForm.mana.SetText(unit.UnitBalance.ManaN.String)
+	} else {
+		dForm.mana.SetText(unit.UnitBalance.ManaN.String)
+	}
+	if unit.UnitBalance.RegenMana.Valid {
+		dForm.manaRegen.SetText(unit.UnitBalance.RegenMana.String)
+	} else {
+		dForm.manaRegen.SetText("0")
+	}
 	if unit.UnitBalance.Isbldg.String == "1" {
 		dForm.isBuilding.SetChecked(true)
 	} else {
@@ -986,9 +1114,26 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	dForm.defense.SetText(unit.UnitBalance.Def.String)
 	dForm.lumberCost.SetText(unit.UnitBalance.Lumbercost.String)
 	dForm.goldCost.SetText(unit.UnitBalance.Goldcost.String)
-	dForm.foodCost.SetText(unit.UnitBalance.Fused.String)
-	dForm.foodProduction.SetText(unit.UnitBalance.Fmade.String)
-	dForm.movementSpeed.SetText(unit.UnitBalance.Spd.String)
+	if unit.UnitBalance.Fused.Valid && unit.UnitBalance.Fused.String != "\"-\"" {
+		dForm.foodCost.SetText(unit.UnitBalance.Fused.String)
+	} else {
+		dForm.foodCost.SetText("0")
+	}
+	if unit.UnitBalance.Fmade.Valid && unit.UnitBalance.Fmade.String != "\"-\"" {
+		dForm.foodProduction.SetText(unit.UnitBalance.Fmade.String)
+	} else {
+		dForm.foodProduction.SetText("0")
+	}
+	if unit.UnitData.Points.Valid && unit.UnitData.Points.String != "\"-\"" {
+		dForm.points.SetText(unit.UnitData.Points.String)
+	} else {
+		dForm.points.SetText("0")
+	}
+	if unit.UnitBalance.Spd.Valid && unit.UnitBalance.Spd.String != "\"-\"" {
+		dForm.movementSpeed.SetText(unit.UnitBalance.Spd.String)
+	} else {
+		dForm.movementSpeed.SetText("0")
+	}
 	dForm.movementSpeedMinimum.SetText(unit.UnitBalance.MinSpd.String)
 	dForm.movementSpeedMaximum.SetText(unit.UnitBalance.MaxSpd.String)
 	dForm.flyingHeight.SetText(unit.UnitData.MoveHeight.String)
@@ -1721,7 +1866,7 @@ func makeUnitInputForm() *ui.Tab {
 
 	dataForm.Append("Acquisition Range", dForm.acquisition, false)
 	dataForm.Append("Builds", dForm.builds, false)
-	dataForm.Append("Sells", dForm.sells, false)
+	dataForm.Append("Sells (items)", dForm.sells, false)
 	dataForm.Append("Upgrades To", dForm.upgradesTo, false)
 	dataForm.Append("Trains", dForm.trains, false)
 	dataForm.Append("Health", dForm.health, false)
