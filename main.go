@@ -2539,7 +2539,7 @@ func makeBasicControlsPage() ui.Control {
 		if uForm.abilities.Text() == "" {
 			unitAbilities.AbilList.SetValid("\"_\"")
 		} else {
-			unitAbilities.AbilList.SetValid(uForm.abilities.Text())
+			unitAbilities.AbilList.SetValid("\"" + uForm.abilities.Text() + "\"")
 		}
 		// unitAbilities.HeroAbilList.SetValid() // Not required
 		unitAbilities.InBeta.SetValid("0")
