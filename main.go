@@ -2529,7 +2529,7 @@ func makeBasicControlsPage() ui.Control {
 		unitUi.ShadowX.SetValid("0")
 		unitUi.ShadowY.SetValid("0")
 		unitUi.ShadowOnWater.SetValid("0")
-		unitUi.SelCircOnWater.SetValid("1")
+		unitUi.SelCircOnWater.SetValid("0")
 		unitUi.OccH.SetValid("0")
 		unitUi.InBeta.SetValid("0")
 
