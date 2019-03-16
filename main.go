@@ -26,11 +26,15 @@ var wFormOne weaponForm
 var wFormTwo weaponForm
 var dForm dataForm
 var oForm otherForm
+var fileHBox *ui.Box
 var races = []string{"\"_\"", "\"commoner\"", "\"creeps\"", "\"critters\"", "\"demon\"", "\"human\"", "\"naga\"", "\"nightelf\"", "\"orc\"", "\"other\"", "\"unknown\"", "\"undead\""}
 var moveTypes = []string{"\"_\"", "\"foot\"", "\"horse\"", "\"fly\"", "\"hover\"", "\"float\"", "\"amph\""}
 var pathingTextures = []string{"\"PathTextures\\10x10Simple.tga\"", "\"PathTextures\\10x10Simple.tga\"", "\"PathTextures\\10x10Simple.tga\"", "\"PathTextures\\10x10Simple.tga\"", "\"PathTextures\\12x12Simple.tga\"", "\"PathTextures\\6x6SimpleSolid.tga\"", "\"PathTextures\\4x4SimpleSolid.tga\"", "\"PathTextures\\16x16Simple.tga\"", "\"PathTextures\\DemonGatePath.tga\"", "\"PathTextures\\DarkPortalSE.tga\"", "\"PathTextures\\DarkPortalSW.tga\"", "\"PathTextures\\16x16Goldmine.tga\"", "\"PathTextures\\16x16Simple.tga\"", "\"PathTextures\\UndeadNecropolis.tga\"", "\"PathTextures\\16x16Simple.tga\"", "\"PathTextures\\6x6SimpleSolid.tga\"", "\"PathTextures\\8x8SimpleSolid.tga\"", "\"PathTextures\\12x12Simple.tga\"", "\"PathTextures\\6x6SimpleSolid.tga\"", "\"PathTextures\\16x16Simple.tga\""}
 var weaponTypes = []string{"\"_\"", "\"normal\"", "\"instant\"", "\"artillery\"", "\"aline\"", "\"missile\"", "\"msplash\"", "\"mbounce\"", "\"mline\""}
 var attackTypes = []string{"\"_\"", "\"normal\"", "\"pierce\"", "\"siege\"", "\"spells\"", "\"chaos\"", "\"magic\"", "\"hero\""}
+var deathTypes = []string{"0", "1", "2", "3"}
+var defenseTypes = []string{"\"normal\"", "\"small\"", "\"medium\"", "\"large\"", "\"fortified\"", "\"hero\"", "\"divine\"", "\"unarmored\""}
+var ubersplatTypes = []string{"\"UMED\"", "\"EMDB\"", "\"HMED\"", "\"OMED\"", "\"EMDA\"", "\"ESMA\"", "\"HSMA\"", "\"HCAS\"", "\"NDGS\"", "\"DPSE\"", "\"DPSW\"", "\"NGOL\"", "\"OLAR\"", "\"ULAR\"", "\"HTOW\"", "\"ESMB\"", "\"OSMA\"", "\"HLAR\"", "\"USMA\"", "\"NLAR\""}
 
 // const MAXINT = 9999999
 
@@ -74,6 +78,33 @@ type targetGrid struct {
 	ward         *ui.Checkbox
 }
 
+type classificationGrid struct {
+	*ui.Grid
+	ancient    *ui.Checkbox
+	giant      *ui.Checkbox
+	mechanical *ui.Checkbox
+	neutral    *ui.Checkbox
+	suicidal   *ui.Checkbox
+	summoned   *ui.Checkbox
+	tauren     *ui.Checkbox
+	townhall   *ui.Checkbox
+	tree       *ui.Checkbox
+	undead     *ui.Checkbox
+	walkable   *ui.Checkbox
+	ward       *ui.Checkbox
+	worker     *ui.Checkbox
+}
+
+type canGrid struct {
+	*ui.Grid
+	canSleep            *ui.Checkbox
+	canBeBuiltOn        *ui.Checkbox
+	canBuildOn          *ui.Checkbox
+	canFlee             *ui.Checkbox
+	dropsItemsUponDeath *ui.Checkbox
+	isCampaign          *ui.Checkbox
+}
+
 type uiForm struct {
 	unitId             *ui.Entry
 	name               *ui.Entry
@@ -111,6 +142,9 @@ type weaponForm struct {
 	aoeFull          *ui.Entry
 	aoeMedium        *ui.Entry
 	aoeSmall         *ui.Entry
+	aoeFactorMedium  *ui.Entry
+	aoeFactorSmall   *ui.Entry
+	aoeFactorLoss    *ui.Entry
 	aoeTargets       targetGrid
 	projectile       *ui.Entry
 	projectileHoming *ui.Checkbox
@@ -130,17 +164,17 @@ type dataForm struct {
 	upgradesTo           *ui.Entry
 	trains               *ui.Entry
 	health               *ui.Entry
+	healthRegen          *ui.Entry
 	mana                 *ui.Entry
+	manaRegen            *ui.Entry
 	isBuilding           *ui.Checkbox
 	defense              *ui.Entry
 	defenseType          *ui.Combobox
 	lumberCost           *ui.Entry
 	goldCost             *ui.Entry
 	points               *ui.Entry
-	race                 *ui.Combobox
 	foodCost             *ui.Entry
 	foodProduction       *ui.Entry
-	isCampaign           *ui.Checkbox
 	movementType         *ui.Combobox
 	movementSpeed        *ui.Entry
 	movementSpeedMinimum *ui.Entry
@@ -150,18 +184,19 @@ type dataForm struct {
 }
 
 type otherForm struct {
-	deathType             *ui.Entry
+	deathType             *ui.Combobox
 	death                 *ui.Entry
 	cargoSize             *ui.Entry
 	turnRate              *ui.Entry
-	canSleep              *ui.Checkbox
-	canBeBuiltOn          *ui.Checkbox
-	canBuildOn            *ui.Checkbox
-	dropsItems            *ui.Checkbox
+	canGrid               canGrid
 	elevationSamplePoints *ui.Entry
 	elevationSampleRadius *ui.Entry
 	targetedAs            targetGrid
 	level                 *ui.Entry
+	classification        classificationGrid
+	buildTime             *ui.Entry
+	repairTime            *ui.Entry
+	race                  *ui.Combobox
 }
 
 func main() {
@@ -378,8 +413,6 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		pathingTextureSelected.SetValid(13)
 	case "PathTextures\\8x8SimpleSolid.tga":
 		pathingTextureSelected.SetValid(16)
-	default:
-		pathingTextureSelected.SetValid(6)
 	}
 	if pathingTextureSelected.Valid {
 		uForm.pathingTexture.SetSelected(pathingTextureSelected.Int)
@@ -401,6 +434,9 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	wFormOne.aoeFull.SetText(unit.UnitWeapons.Farea1.String)
 	wFormOne.aoeMedium.SetText(unit.UnitWeapons.Harea1.String)
 	wFormOne.aoeSmall.SetText(unit.UnitWeapons.Qarea1.String)
+	wFormOne.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact1.String)
+	wFormOne.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact1.String)
+	wFormOne.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss1.String)
 	wFormOne.weaponRange.SetText(unit.UnitWeapons.RangeN1.String)
 	wFormOne.cooldown.SetText(unit.UnitWeapons.Cool1.String)
 	wFormOne.damageBase.SetText(unit.UnitWeapons.Dmgplus1.String)
@@ -675,6 +711,9 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	wFormTwo.aoeFull.SetText(unit.UnitWeapons.Farea2.String)
 	wFormTwo.aoeMedium.SetText(unit.UnitWeapons.Harea2.String)
 	wFormTwo.aoeSmall.SetText(unit.UnitWeapons.Qarea2.String)
+	wFormTwo.aoeFactorMedium.SetText(unit.UnitWeapons.Hfact2.String)
+	wFormTwo.aoeFactorSmall.SetText(unit.UnitWeapons.Qfact2.String)
+	wFormTwo.aoeFactorLoss.SetText(unit.UnitWeapons.DamageLoss2.String)
 	wFormTwo.weaponRange.SetText(unit.UnitWeapons.RangeN2.String)
 	wFormTwo.cooldown.SetText(unit.UnitWeapons.Cool2.String)
 	wFormTwo.damageBase.SetText(unit.UnitWeapons.Dmgplus2.String)
@@ -950,6 +989,8 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	dForm.foodCost.SetText(unit.UnitBalance.Fused.String)
 	dForm.foodProduction.SetText(unit.UnitBalance.Fmade.String)
 	dForm.movementSpeed.SetText(unit.UnitBalance.Spd.String)
+	dForm.movementSpeedMinimum.SetText(unit.UnitBalance.MinSpd.String)
+	dForm.movementSpeedMaximum.SetText(unit.UnitBalance.MaxSpd.String)
 	dForm.flyingHeight.SetText(unit.UnitData.MoveHeight.String)
 	dForm.minimumFlyingHeight.SetText(unit.UnitData.MoveFloor.String)
 	race := strings.Replace(unit.UnitData.Race.String, "\"", "", -1)
@@ -983,7 +1024,7 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		raceSelected.SetValid(10)
 	}
 	if raceSelected.Valid {
-		dForm.race.SetSelected(raceSelected.Int)
+		oForm.race.SetSelected(raceSelected.Int)
 	}
 	defenseType := strings.Replace(unit.UnitBalance.DefType.String, "\"", "", -1)
 	var defenseTypeSelected null.Int
@@ -1035,9 +1076,9 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 
 	// Set Other Form
 	if unit.UnitUI.DropItems.Valid && unit.UnitUI.DropItems.String == "1" {
-		oForm.dropsItems.SetChecked(true)
+		oForm.canGrid.dropsItemsUponDeath.SetChecked(true)
 	} else {
-		oForm.dropsItems.SetChecked(false)
+		oForm.canGrid.dropsItemsUponDeath.SetChecked(false)
 	}
 	if unit.UnitUI.ElevPts.Valid {
 		oForm.elevationSamplePoints.SetText(unit.UnitUI.ElevPts.String)
@@ -1046,14 +1087,19 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		oForm.elevationSampleRadius.SetText(unit.UnitUI.ElevRad.String)
 	}
 	if unit.UnitData.IsBuildOn.Valid && unit.UnitData.IsBuildOn.String == "1" {
-		oForm.canBeBuiltOn.SetChecked(true)
+		oForm.canGrid.canBeBuiltOn.SetChecked(true)
 	} else {
-		oForm.canBeBuiltOn.SetChecked(false)
+		oForm.canGrid.canBeBuiltOn.SetChecked(false)
 	}
 	if unit.UnitData.CanBuildOn.Valid && unit.UnitData.CanBuildOn.String == "1" {
-		oForm.canBuildOn.SetChecked(true)
+		oForm.canGrid.canBuildOn.SetChecked(true)
 	} else {
-		oForm.canBuildOn.SetChecked(false)
+		oForm.canGrid.canBuildOn.SetChecked(false)
+	}
+	if unit.UnitData.CanFlee.Valid && unit.UnitData.CanFlee.String == "1" {
+		oForm.canGrid.canFlee.SetChecked(true)
+	} else {
+		oForm.canGrid.canFlee.SetChecked(false)
 	}
 	if unit.UnitData.TurnRate.Valid {
 		oForm.turnRate.SetText(unit.UnitData.TurnRate.String)
@@ -1062,12 +1108,29 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 		oForm.cargoSize.SetText(unit.UnitData.CargoSize.String)
 	}
 	if unit.UnitData.CanSleep.Valid && unit.UnitData.CanSleep.String == "1" {
-		oForm.canSleep.SetChecked(true)
+		oForm.canGrid.canSleep.SetChecked(true)
 	} else {
-		oForm.canSleep.SetChecked(false)
+		oForm.canGrid.canSleep.SetChecked(false)
 	}
 	if unit.UnitData.Death.Valid {
 		oForm.death.SetText(unit.UnitData.Death.String)
+	}
+	if unit.UnitData.DeathType.Valid {
+		parsedDeathType, err := strconv.Atoi(unit.UnitData.DeathType.String)
+		if err != nil {
+			log.Println(err)
+		} else {
+			oForm.deathType.SetSelected(parsedDeathType)
+		}
+	}
+	if unit.UnitBalance.Level.Valid {
+		oForm.level.SetText(unit.UnitBalance.Level.String)
+	}
+	if unit.UnitBalance.Bldtm.Valid {
+		oForm.buildTime.SetText(unit.UnitBalance.Bldtm.String)
+	}
+	if unit.UnitBalance.Reptm.Valid {
+		oForm.repairTime.SetText(unit.UnitBalance.Reptm.String)
 	}
 	oForm.targetedAs.air.SetChecked(false)
 	oForm.targetedAs.alive.SetChecked(false)
@@ -1168,6 +1231,51 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 			oForm.targetedAs.ward.SetChecked(true)
 		}
 	}
+	oForm.classification.townhall.SetChecked(false)
+	oForm.classification.ancient.SetChecked(false)
+	oForm.classification.summoned.SetChecked(false)
+	oForm.classification.suicidal.SetChecked(false)
+	oForm.classification.neutral.SetChecked(false)
+	oForm.classification.mechanical.SetChecked(false)
+	oForm.classification.giant.SetChecked(false)
+	oForm.classification.tauren.SetChecked(false)
+	oForm.classification.tree.SetChecked(false)
+	oForm.classification.undead.SetChecked(false)
+	oForm.classification.walkable.SetChecked(false)
+	oForm.classification.ward.SetChecked(false)
+	oForm.classification.worker.SetChecked(false)
+	unitClassifications := strings.Replace(unit.UnitBalance.Type.String, "\"", "", -1)
+	unitClassificationSplit := strings.Split(unitClassifications, ",")
+	for _, unitClassification := range unitClassificationSplit {
+		switch unitClassification {
+		case "TownHall":
+			oForm.classification.townhall.SetChecked(true)
+		case "Ancient":
+			oForm.classification.ancient.SetChecked(true)
+		case "Summoned":
+			oForm.classification.summoned.SetChecked(true)
+		case "Suicidal":
+			oForm.classification.suicidal.SetChecked(true)
+		case "Neutral":
+			oForm.classification.neutral.SetChecked(true)
+		case "Mechanical":
+			oForm.classification.mechanical.SetChecked(true)
+		case "Giant":
+			oForm.classification.giant.SetChecked(true)
+		case "Tauren":
+			oForm.classification.tauren.SetChecked(true)
+		case "Tree":
+			oForm.classification.tree.SetChecked(true)
+		case "Undead":
+			oForm.classification.undead.SetChecked(true)
+		case "Walkable":
+			oForm.classification.walkable.SetChecked(true)
+		case "Ward":
+			oForm.classification.ward.SetChecked(true)
+		case "Worker":
+			oForm.classification.worker.SetChecked(true)
+		}
+	}
 }
 
 func makePathingTextureComboBox() *ui.Combobox {
@@ -1199,7 +1307,7 @@ func makePathingTextureComboBox() *ui.Combobox {
 	return comboBox
 }
 
-func saveUnitsToFile() {
+func saveUnitsToFile(location string) {
 	customUnitFuncs := new(models.UnitFuncs)
 	campaignUnitFuncs := make([]*models.UnitFunc, len(unitFuncMap))
 	var campaignIndex = 0
@@ -1207,6 +1315,8 @@ func saveUnitsToFile() {
 		campaignUnitFuncs[campaignIndex] = k
 		campaignIndex++
 	}
+
+	customUnitFuncs.CampaignUnitFuncs = campaignUnitFuncs
 
 	unitMapLength := len(baseUnitMap)
 	parsedSLKUnitsAbilities := make([]*models.UnitAbilities, unitMapLength)
@@ -1225,7 +1335,7 @@ func saveUnitsToFile() {
 		i++
 	}
 
-	parser.WriteToFiles(customUnitFuncs, parsedSLKUnitsAbilities, parsedSLKUnitsData, parsedSLKUnitsUI, parsedSLKUnitsWeapons, parsedSLKUnitsBalance)
+	parser.WriteToFilesAndSaveToFolder(customUnitFuncs, parsedSLKUnitsAbilities, parsedSLKUnitsData, parsedSLKUnitsUI, parsedSLKUnitsWeapons, parsedSLKUnitsBalance, location)
 }
 
 func makeRaceComboBox() *ui.Combobox {
@@ -1294,6 +1404,18 @@ func makeAttackTypeComboBox() *ui.Combobox {
 	return comboBox
 }
 
+func makeDeathTypeComboBox() *ui.Combobox {
+	comboBox := ui.NewCombobox()
+	comboBox.Append("Can't raise, Does not decay")
+	comboBox.Append("Can raise, Does not decay")
+	comboBox.Append("Can't raise, Does decay")
+	comboBox.Append("Can raise, Does decay")
+
+	comboBox.SetSelected(0)
+
+	return comboBox
+}
+
 func makeWeaponTypeComboBox() *ui.Combobox {
 	comboBox := ui.NewCombobox()
 	comboBox.Append("NONE")
@@ -1320,33 +1442,70 @@ func makeTargetTypeGrid() targetGrid {
 	tGrid.Append(tGrid.ancient, 3, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
 	tGrid.Append(tGrid.bridge, 4, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
 	tGrid.Append(tGrid.dead, 5, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.debris, 0, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.decoration, 1, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.enemies, 2, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.friend, 3, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.ground, 4, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.hero, 5, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.invulnerable, 0, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.item, 1, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.mechanical, 2, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.neutral, 3, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.nonancient, 4, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.nonhero, 5, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.nonsapper, 0, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.none, 1, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.notself, 2, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.organic, 3, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.player, 4, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.self, 5, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.structure, 0, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.sapper, 1, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.terrain, 2, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.tree, 3, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.vulnerable, 4, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.wall, 5, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
-	tGrid.Append(tGrid.ward, 0, 5, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.debris, 6, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.decoration, 0, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.enemies, 1, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.friend, 2, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.ground, 3, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.hero, 4, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.invulnerable, 5, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.item, 6, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.mechanical, 0, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.neutral, 1, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.nonancient, 2, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.nonhero, 3, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.nonsapper, 4, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.none, 5, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.notself, 6, 2, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.organic, 0, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.player, 1, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.self, 2, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.structure, 3, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.sapper, 4, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.terrain, 5, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.tree, 6, 3, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.vulnerable, 0, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.wall, 1, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	tGrid.Append(tGrid.ward, 2, 4, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
 
 	return tGrid
+}
+
+func makeClassificationGrid() classificationGrid {
+	cGrid := classificationGrid{ui.NewGrid(), ui.NewCheckbox("Ancient"), ui.NewCheckbox("Giant"), ui.NewCheckbox("Mechanical"), ui.NewCheckbox("Neutral"), ui.NewCheckbox("Suicidal"), ui.NewCheckbox("Summoned"), ui.NewCheckbox("Tauren"), ui.NewCheckbox("Town Hall"), ui.NewCheckbox("Tree"), ui.NewCheckbox("Undead"), ui.NewCheckbox("Walkable"), ui.NewCheckbox("Ward"), ui.NewCheckbox("Worker")}
+
+	cGrid.Append(cGrid.ancient, 0, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.giant, 1, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.mechanical, 2, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.neutral, 3, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.suicidal, 4, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.summoned, 5, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.tauren, 6, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.townhall, 7, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.tree, 0, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.undead, 1, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.walkable, 2, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.ward, 3, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.worker, 4, 1, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+
+	return cGrid
+}
+
+func makeCanGrid() canGrid {
+	isCategorizedCampaignCheckbox := ui.NewCheckbox("Is Campaign")
+	isCategorizedCampaignCheckbox.SetChecked(true)
+	isCategorizedCampaignCheckbox.Disable()
+
+	cGrid := canGrid{ui.NewGrid(), ui.NewCheckbox("Can Sleep"), ui.NewCheckbox("Can Be Built On"), ui.NewCheckbox("Can Build On"), ui.NewCheckbox("Can Flee"), ui.NewCheckbox("Drops Items Upon Death"), isCategorizedCampaignCheckbox}
+
+	cGrid.Append(cGrid.canSleep, 0, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.canBeBuiltOn, 1, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.canBuildOn, 2, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.canFlee, 3, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.dropsItemsUponDeath, 4, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+	cGrid.Append(cGrid.isCampaign, 5, 0, 1, 1, false, ui.AlignFill, false, ui.AlignFill)
+
+	return cGrid
 }
 
 func makeUnitInputForm() *ui.Tab {
@@ -1377,7 +1536,7 @@ func makeUnitInputForm() *ui.Tab {
 	uForm.blue.SetValue(255)
 	uForm.color.SetColor(1, 1, 1, 1)
 
-	generateUnitIdButton := ui.NewButton("Generate Valid ID")
+	generateUnitIdButton := ui.NewButton("↺ Generate Valid ID")
 	generateUnitIdButton.OnClicked(func(button *ui.Button) {
 		uForm.unitId.SetText(getNextValidUnitId(lastValidIndex))
 	})
@@ -1408,15 +1567,15 @@ func makeUnitInputForm() *ui.Tab {
 	tab.Append("UI", uiForm)
 	tab.SetMargined(0, true)
 
-	wFormOne = weaponForm{ui.NewCheckbox(""), ui.NewEntry(), ui.NewEntry(), makeAttackTypeComboBox(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeWeaponTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewCheckbox(""), ui.NewEntry()}
-	wFormTwo = weaponForm{ui.NewCheckbox(""), ui.NewEntry(), ui.NewEntry(), makeAttackTypeComboBox(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeWeaponTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewCheckbox(""), ui.NewEntry()}
+	wFormOne = weaponForm{ui.NewCheckbox(""), ui.NewEntry(), ui.NewEntry(), makeAttackTypeComboBox(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeWeaponTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewCheckbox(""), ui.NewEntry()}
+	wFormTwo = weaponForm{ui.NewCheckbox(""), ui.NewEntry(), ui.NewEntry(), makeAttackTypeComboBox(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeWeaponTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry(), ui.NewCheckbox(""), ui.NewEntry()}
 
 	weaponTab := weaponTab{ui.NewTab(), wFormOne, wFormTwo}
 
 	weaponFormOne := ui.NewForm()
 	weaponFormOne.SetPadded(true)
 
-	areaOfEffectHBoxOne := ui.NewHorizontalBox()
+	areaOfEffectRadiusHBoxOne := ui.NewHorizontalBox()
 	aoeFullFormOne := ui.NewForm()
 	aoeFullFormOne.SetPadded(true)
 	aoeFullFormOne.Append("Full", wFormOne.aoeFull, false)
@@ -1426,13 +1585,36 @@ func makeUnitInputForm() *ui.Tab {
 	aoeSmallFormOne := ui.NewForm()
 	aoeSmallFormOne.SetPadded(true)
 	aoeSmallFormOne.Append("Small", wFormOne.aoeSmall, false)
-	areaOfEffectHBoxOne.Append(aoeFullFormOne, false)
-	areaOfEffectHBoxOne.Append(aoeMediumFormOne, false)
-	areaOfEffectHBoxOne.Append(aoeSmallFormOne, false)
+	areaOfEffectRadiusHBoxOne.Append(aoeFullFormOne, false)
+	areaOfEffectRadiusHBoxOne.Append(aoeMediumFormOne, false)
+	areaOfEffectRadiusHBoxOne.Append(aoeSmallFormOne, false)
+
+	areaOfEffectFactorHBoxOne := ui.NewHorizontalBox()
+	aoeFactorMediumOne := ui.NewForm()
+	aoeFactorMediumOne.SetPadded(true)
+	aoeFactorMediumOne.Append("Medium", wFormOne.aoeFactorMedium, false)
+	aoeFactorSmallOne := ui.NewForm()
+	aoeFactorSmallOne.SetPadded(true)
+	aoeFactorSmallOne.Append("Small", wFormOne.aoeFactorSmall, false)
+	aoeFactorLossOne := ui.NewForm()
+	aoeFactorLossOne.SetPadded(true)
+	aoeFactorLossOne.Append("Loss", wFormOne.aoeFactorLoss, false)
+	areaOfEffectFactorHBoxOne.Append(aoeFactorMediumOne, false)
+	areaOfEffectFactorHBoxOne.Append(aoeFactorSmallOne, false)
+	areaOfEffectFactorHBoxOne.Append(aoeFactorLossOne, false)
+
+	weaponAnimationHBoxOne := ui.NewHorizontalBox()
+	backswingPointOne := ui.NewForm()
+	backswingPointOne.SetPadded(true)
+	backswingPointOne.Append("Backswing Point", wFormOne.backswingPoint, false)
+	damagePointOne := ui.NewForm()
+	damagePointOne.SetPadded(true)
+	damagePointOne.Append("Damage Point", wFormOne.damagePoint, false)
+	weaponAnimationHBoxOne.Append(backswingPointOne, false)
+	weaponAnimationHBoxOne.Append(damagePointOne, false)
 
 	weaponFormOne.Append("Enable Weapon", wFormOne.enableWeapon, false)
-	weaponFormOne.Append("Backswing Point", wFormOne.backswingPoint, false)
-	weaponFormOne.Append("Damage Point", wFormOne.damagePoint, false)
+	weaponFormOne.Append("Animation", weaponAnimationHBoxOne, false)
 	weaponFormOne.Append("Attack Type", wFormOne.attackType, false)
 	weaponFormOne.Append("Targets", wFormOne.targets, false)
 	weaponFormOne.Append("Cooldown", wFormOne.cooldown, false)
@@ -1441,7 +1623,8 @@ func makeUnitInputForm() *ui.Tab {
 	weaponFormOne.Append("Damage Sides", wFormOne.damageSides, false)
 	weaponFormOne.Append("Range", wFormOne.weaponRange, false)
 	weaponFormOne.Append("Weapon Type", wFormOne.weaponType, false)
-	weaponFormOne.Append("AOE", areaOfEffectHBoxOne, false)
+	weaponFormOne.Append("AOE Radius", areaOfEffectRadiusHBoxOne, false)
+	weaponFormOne.Append("AOE Factor", areaOfEffectFactorHBoxOne, false)
 	weaponFormOne.Append("AOE Targets", wFormOne.aoeTargets, false)
 	weaponFormOne.Append("Projectile", wFormOne.projectile, false)
 	weaponFormOne.Append("Projectile Homing", wFormOne.projectileHoming, false)
@@ -1453,7 +1636,7 @@ func makeUnitInputForm() *ui.Tab {
 	weaponFormTwo := ui.NewForm()
 	weaponFormTwo.SetPadded(true)
 
-	areaOfEffectHBoxTwo := ui.NewHorizontalBox()
+	areaOfEffectRadiusHBoxTwo := ui.NewHorizontalBox()
 	aoeFullFormTwo := ui.NewForm()
 	aoeFullFormTwo.SetPadded(true)
 	aoeFullFormTwo.Append("Full", wFormTwo.aoeFull, false)
@@ -1463,13 +1646,36 @@ func makeUnitInputForm() *ui.Tab {
 	aoeSmallFormTwo := ui.NewForm()
 	aoeSmallFormTwo.SetPadded(true)
 	aoeSmallFormTwo.Append("Small", wFormTwo.aoeSmall, false)
-	areaOfEffectHBoxTwo.Append(aoeFullFormTwo, false)
-	areaOfEffectHBoxTwo.Append(aoeMediumFormTwo, false)
-	areaOfEffectHBoxTwo.Append(aoeSmallFormTwo, false)
+	areaOfEffectRadiusHBoxTwo.Append(aoeFullFormTwo, false)
+	areaOfEffectRadiusHBoxTwo.Append(aoeMediumFormTwo, false)
+	areaOfEffectRadiusHBoxTwo.Append(aoeSmallFormTwo, false)
+
+	areaOfEffectFactorHBoxTwo := ui.NewHorizontalBox()
+	aoeFactorMediumTwo := ui.NewForm()
+	aoeFactorMediumTwo.SetPadded(true)
+	aoeFactorMediumTwo.Append("Medium", wFormTwo.aoeFactorMedium, false)
+	aoeFactorSmallTwo := ui.NewForm()
+	aoeFactorSmallTwo.SetPadded(true)
+	aoeFactorSmallTwo.Append("Small", wFormTwo.aoeFactorSmall, false)
+	aoeFactorLossTwo := ui.NewForm()
+	aoeFactorLossTwo.SetPadded(true)
+	aoeFactorLossTwo.Append("Loss", wFormTwo.aoeFactorLoss, false)
+	areaOfEffectFactorHBoxTwo.Append(aoeFactorMediumTwo, false)
+	areaOfEffectFactorHBoxTwo.Append(aoeFactorSmallTwo, false)
+	areaOfEffectFactorHBoxTwo.Append(aoeFactorLossTwo, false)
+
+	weaponAnimationHBoxTwo := ui.NewHorizontalBox()
+	backswingPointTwo := ui.NewForm()
+	backswingPointTwo.SetPadded(true)
+	backswingPointTwo.Append("Backswing Point", wFormTwo.backswingPoint, false)
+	damagePointTwo := ui.NewForm()
+	damagePointTwo.SetPadded(true)
+	damagePointTwo.Append("Damage Point", wFormTwo.damagePoint, false)
+	weaponAnimationHBoxTwo.Append(backswingPointTwo, false)
+	weaponAnimationHBoxTwo.Append(damagePointTwo, false)
 
 	weaponFormTwo.Append("Enable Weapon", wFormTwo.enableWeapon, false)
-	weaponFormTwo.Append("Backswing Point", wFormTwo.backswingPoint, false)
-	weaponFormTwo.Append("Damage Point", wFormTwo.damagePoint, false)
+	weaponFormTwo.Append("Animation", weaponAnimationHBoxTwo, false)
 	weaponFormTwo.Append("Attack Type", wFormTwo.attackType, false)
 	weaponFormTwo.Append("Targets", wFormTwo.targets, false)
 	weaponFormTwo.Append("Cooldown", wFormTwo.cooldown, false)
@@ -1478,7 +1684,8 @@ func makeUnitInputForm() *ui.Tab {
 	weaponFormTwo.Append("Damage Sides", wFormTwo.damageSides, false)
 	weaponFormTwo.Append("Range", wFormTwo.weaponRange, false)
 	weaponFormTwo.Append("Weapon Type", wFormTwo.weaponType, false)
-	weaponFormTwo.Append("AOE", areaOfEffectHBoxTwo, false)
+	weaponFormTwo.Append("AOE Radius", areaOfEffectRadiusHBoxTwo, false)
+	weaponFormTwo.Append("AOE Factor", areaOfEffectFactorHBoxTwo, false)
 	weaponFormTwo.Append("AOE Targets", wFormTwo.aoeTargets, false)
 	weaponFormTwo.Append("Projectile", wFormTwo.projectile, false)
 	weaponFormTwo.Append("Projectile Homing", wFormTwo.projectileHoming, false)
@@ -1493,11 +1700,7 @@ func makeUnitInputForm() *ui.Tab {
 	isBuildingCheckbox := ui.NewCheckbox("")
 	isBuildingCheckbox.SetChecked(true)
 
-	isCategorizedCampaignCheckbox := ui.NewCheckbox("")
-	isCategorizedCampaignCheckbox.SetChecked(true)
-	isCategorizedCampaignCheckbox.Disable()
-
-	dForm = dataForm{ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), isBuildingCheckbox, ui.NewEntry(), makeDefenseTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeRaceComboBox(), ui.NewEntry(), ui.NewEntry(), isCategorizedCampaignCheckbox, makeMovementTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry()}
+	dForm = dataForm{ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), isBuildingCheckbox, ui.NewEntry(), makeDefenseTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeMovementTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry()}
 
 	dataForm := ui.NewForm()
 	dataForm.SetPadded(true)
@@ -1522,17 +1725,17 @@ func makeUnitInputForm() *ui.Tab {
 	dataForm.Append("Upgrades To", dForm.upgradesTo, false)
 	dataForm.Append("Trains", dForm.trains, false)
 	dataForm.Append("Health", dForm.health, false)
+	dataForm.Append("Health Regen", dForm.healthRegen, false)
 	dataForm.Append("Mana", dForm.mana, false)
+	dataForm.Append("Mana Regen", dForm.manaRegen, false)
 	dataForm.Append("Is Building", dForm.isBuilding, false)
 	dataForm.Append("Defense", dForm.defense, false)
 	dataForm.Append("Defense Type", dForm.defenseType, false)
 	dataForm.Append("Lumber Cost", dForm.lumberCost, false)
 	dataForm.Append("Gold Cost", dForm.goldCost, false)
 	dataForm.Append("Points", dForm.points, false)
-	dataForm.Append("Race", dForm.race, false)
 	dataForm.Append("Food Cost", dForm.foodCost, false)
 	dataForm.Append("Food Production", dForm.foodProduction, false)
-	dataForm.Append("Is Campaign", dForm.isCampaign, false)
 	dataForm.Append("Movement Type", dForm.movementType, false)
 	dataForm.Append("Movement", movementHBox, false)
 	dataForm.Append("Flying Height", dForm.flyingHeight, false)
@@ -1541,23 +1744,24 @@ func makeUnitInputForm() *ui.Tab {
 	tab.Append("Data", dataForm)
 	tab.SetMargined(2, true)
 
-	oForm = otherForm{ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), ui.NewCheckbox(""), ui.NewCheckbox(""), ui.NewCheckbox(""), ui.NewCheckbox(""), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry()}
+	oForm = otherForm{makeDeathTypeComboBox(), ui.NewEntry(), ui.NewEntry(), ui.NewEntry(), makeCanGrid(), ui.NewEntry(), ui.NewEntry(), makeTargetTypeGrid(), ui.NewEntry(), makeClassificationGrid(), ui.NewEntry(), ui.NewEntry(), makeRaceComboBox()}
 
 	otherForm := ui.NewForm()
 	otherForm.SetPadded(true)
 
-	// otherForm.Append("Death Type", oForm.deathType, false)
+	otherForm.Append("Death Type", oForm.deathType, false)
 	otherForm.Append("Death", oForm.death, false)
 	otherForm.Append("Cargo Size", oForm.cargoSize, false)
 	otherForm.Append("Turn Rate", oForm.turnRate, false)
-	otherForm.Append("Can Sleep", oForm.canSleep, false)
-	otherForm.Append("Can Be Built On", oForm.canBeBuiltOn, false)
-	otherForm.Append("Can Build On", oForm.canBuildOn, false)
-	otherForm.Append("Drops Items", oForm.dropsItems, false)
+	otherForm.Append("", oForm.canGrid, false)
 	otherForm.Append("Elevation Sample Points", oForm.elevationSamplePoints, false)
 	otherForm.Append("Elevation Sample Radius", oForm.elevationSampleRadius, false)
 	otherForm.Append("Targeted As", oForm.targetedAs, false)
 	otherForm.Append("Level", oForm.level, false)
+	otherForm.Append("Unit Classification", oForm.classification, false)
+	otherForm.Append("Build Time", oForm.buildTime, false)
+	otherForm.Append("Repair Time", oForm.repairTime, false)
+	otherForm.Append("Race", oForm.race, false)
 
 	tab.Append("Other", otherForm)
 	tab.SetMargined(3, true)
@@ -1571,6 +1775,55 @@ func targetsAppendString(baseString string, appendString string) string {
 	} else {
 		return appendString
 	}
+}
+
+func classificationToString(grid classificationGrid) string {
+	str := ""
+	if grid.ancient.Checked() {
+		str = targetsAppendString(str, "Ancient")
+	}
+	if grid.giant.Checked() {
+		str = targetsAppendString(str, "Giant")
+	}
+	if grid.mechanical.Checked() {
+		str = targetsAppendString(str, "Mechanical")
+	}
+	if grid.neutral.Checked() {
+		str = targetsAppendString(str, "Neutral")
+	}
+	if grid.suicidal.Checked() {
+		str = targetsAppendString(str, "Suicidal")
+	}
+	if grid.summoned.Checked() {
+		str = targetsAppendString(str, "Summoned")
+	}
+	if grid.tauren.Checked() {
+		str = targetsAppendString(str, "Tauren")
+	}
+	if grid.townhall.Checked() {
+		str = targetsAppendString(str, "TownHall")
+	}
+	if grid.tree.Checked() {
+		str = targetsAppendString(str, "Tree")
+	}
+	if grid.undead.Checked() {
+		str = targetsAppendString(str, "Undead")
+	}
+	if grid.walkable.Checked() {
+		str = targetsAppendString(str, "Walkable")
+	}
+	if grid.ward.Checked() {
+		str = targetsAppendString(str, "Ward")
+	}
+	if grid.worker.Checked() {
+		str = targetsAppendString(str, "Worker")
+	}
+
+	if str == "" {
+		str = "_"
+	}
+
+	return str
 }
 
 func targetsToString(grid targetGrid) string {
@@ -1669,6 +1922,10 @@ func targetsToString(grid targetGrid) string {
 		str = targetsAppendString(str, "ward")
 	}
 
+	if str == "" {
+		str = "-"
+	}
+
 	return str
 }
 
@@ -1687,12 +1944,38 @@ func makeBasicControlsPage() ui.Control {
 
 	tableVbox := ui.NewVerticalBox()
 	/*
-	saveToFileButton := ui.NewButton("Save File")
-	saveToFileButton.OnClicked(func(button *ui.Button) {
+		saveToFileButton := ui.NewButton("Save File")
+		saveToFileButton.OnClicked(func(button *ui.Button) {
 
-	})
-	tableVbox.Append(saveToFileButton, false)
+		})
+		tableVbox.Append(saveToFileButton, false)
 	*/
+	fileHBox = ui.NewHorizontalBox()
+	fileEntry := ui.NewEntry()
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Println(err)
+		fileEntry.SetText("input")
+	} else {
+		fileEntry.SetText(dir + "/input")
+	}
+	fileButton := ui.NewButton("...")
+	fileButton.OnClicked(func(*ui.Button) {
+		filename := ui.OpenFile(mainWindow)
+		if filename != "" {
+			fileEntry.SetText(filename)
+		}
+	})
+	saveButton := ui.NewButton("🖫 Save Files")
+	saveButton.OnClicked(func(button *ui.Button) {
+		saveButton.Disable()
+		saveUnitsToFile(fileEntry.Text())
+		saveButton.Enable()
+	})
+	fileHBox.Append(fileEntry, true)
+	fileHBox.Append(fileButton, false)
+	fileHBox.Append(saveButton, false)
+	fileHBox.Disable()
 	searchEntry := ui.NewSearchEntry()
 	searchEntry.OnChanged(func(entry *ui.Entry) {
 		var searchRegex = regexp.MustCompile(strings.ToLower(entry.Text()))
@@ -1717,9 +2000,10 @@ func makeBasicControlsPage() ui.Control {
 		mh.slkUnitIdList = newList
 		mh.rows = len(newList)
 	})
-	removeButton := ui.NewButton("Remove Unit")
+	removeButton := ui.NewButton("✖ Remove Unit")
 	removeButton.OnClicked(func(button *ui.Button) {
 		if selectedUnit.Valid {
+			removeButton.Disable()
 			delete(unitFuncMap, mh.slkUnitIdList[selectedUnit.Int])
 			delete(baseUnitMap, mh.slkUnitIdList[selectedUnit.Int])
 			mh.slkUnitIdList = append(mh.slkUnitIdList[:selectedUnit.Int], mh.slkUnitIdList[selectedUnit.Int+1:]...)
@@ -1728,20 +2012,29 @@ func makeBasicControlsPage() ui.Control {
 
 			selectedUnit.Int = 0
 			selectedUnit.Valid = false
+
+			// saveUnitsToFile()
+
+			removeButton.Enable()
 		}
 	})
+	tableVbox.Append(fileHBox, false)
 	tableVbox.Append(searchEntry, false)
 	tableVbox.Append(table, true)
 	tableVbox.Append(removeButton, false)
 	hbox.Append(tableVbox, true)
 	formVbox := ui.NewVerticalBox()
 	formVbox.Append(makeUnitInputForm(), true)
-	saveUnitButton := ui.NewButton("Save Unit")
-	saveUnitButton.OnClicked(func(button *ui.Button) {
-		if uForm.unitId.Text() == "" || len(uForm.unitId.Text()) != 4 {
+	addUnitButton := ui.NewButton("✔ Add Unit")
+	addUnitButton.OnClicked(func(button *ui.Button) {
+		unitId := uForm.unitId.Text()
+
+		if unitId == "" || len(unitId) != 4 {
 			log.Println("Error: Unit ID has to be 4 characters long!")
 			return
 		}
+
+		addUnitButton.Disable()
 
 		newUnitFunc := new(models.UnitFunc)
 		newSlkUnit := new(models.SLKUnit)
@@ -1825,7 +2118,7 @@ func makeBasicControlsPage() ui.Control {
 			newUnitFunc.Hotkey.SetValid(uForm.hotkey.Text())
 		}
 		if uForm.description.Text() != "" {
-			newUnitFunc.Ubertip.SetValid(uForm.description.Text())
+			newUnitFunc.Ubertip.SetValid("\"" + uForm.description.Text() + "\"")
 		}
 		if dForm.sells.Text() != "" {
 			newUnitFunc.Sellitems.SetValid(dForm.sells.Text())
@@ -1837,14 +2130,58 @@ func makeBasicControlsPage() ui.Control {
 			newUnitFunc.Trains.SetValid(dForm.trains.Text())
 		}
 
-		unitData.UnitID.SetValid(uForm.unitId.Text())
-		unitData.Race.SetValid(races[dForm.race.Selected()])
+		unitData.UnitID.SetValid("\"" + unitId + "\"")
+		unitData.Sort.SetValid("\"z3\"")
+		// unitData.Comment.SetValid("") // Not required
+		unitData.Race.SetValid(races[oForm.race.Selected()])
+		unitData.Prio.SetValid("1")
+		unitData.Threat.SetValid("1")
+		unitData.Valid.SetValid("1")
+		unitData.DeathType.SetValid(deathTypes[oForm.deathType.Selected()])
+		unitData.Death.SetValid(oForm.death.Text())
+		if oForm.canGrid.canSleep.Checked() {
+			unitData.CanSleep.SetValid("1")
+		} else {
+			unitData.CanSleep.SetValid("0")
+		}
+		unitData.CargoSize.SetValid("\"-\"")
 		unitData.Movetp.SetValid(moveTypes[dForm.movementType.Selected()])
 		unitData.MoveHeight.SetValid(dForm.flyingHeight.Text())
+		unitData.MoveFloor.SetValid(dForm.minimumFlyingHeight.Text())
+		unitData.TurnRate.SetValid(oForm.turnRate.Text())
+		unitData.PropWin.SetValid("60")
+		unitData.OrientInterp.SetValid("0")
+		unitData.Formation.SetValid("0")
+		unitData.TargType.SetValid("\"" + targetsToString(oForm.targetedAs) + "\"")
 		unitData.PathTex.SetValid(pathingTextures[uForm.pathingTexture.Selected()])
+		unitData.FatLOS.SetValid("0")
 		unitData.Points.SetValid(dForm.points.Text())
+		unitData.BuffType.SetValid("\"_\"")
+		unitData.BuffRadius.SetValid("\"-\"")
+		unitData.NameCount.SetValid("\"-\"")
+		if oForm.canGrid.canFlee.Checked() {
+			unitData.CanFlee.SetValid("1")
+		} else {
+			unitData.CanFlee.SetValid("0")
+		}
+		unitData.RequireWaterRadius.SetValid("0")
+		if oForm.canGrid.canBeBuiltOn.Checked() {
+			unitData.IsBuildOn.SetValid("1")
+		} else {
+			unitData.IsBuildOn.SetValid("0")
+		}
+		if oForm.canGrid.canBuildOn.Checked() {
+			unitData.CanBuildOn.SetValid("1")
+		} else {
+			unitData.CanBuildOn.SetValid("0")
+		}
+		unitData.InBeta.SetValid("0")
+		unitData.Version.SetValid("0")
 
-		unitWeapons.UnitWeapID.SetValid(uForm.unitId.Text())
+		unitWeapons.UnitWeapID.SetValid("\"" + unitId + "\"")
+		unitWeapons.SortWeap.SetValid("\"a3\"")
+		unitWeapons.Sort2.SetValid("\"zz\"")
+		unitWeapons.Comment.SetValid("\"" + uForm.name.Text() + "\"")
 		if wFormOne.enableWeapon.Checked() && wFormTwo.enableWeapon.Checked() {
 			unitWeapons.WeapsOn.SetValid("3")
 		} else if wFormOne.enableWeapon.Checked() {
@@ -1855,114 +2192,237 @@ func makeBasicControlsPage() ui.Control {
 			unitWeapons.WeapsOn.SetValid("0")
 		}
 		unitWeapons.Acquire.SetValid(dForm.acquisition.Text())
-		unitWeapons.Targs1.SetValid(targetsToString(wFormOne.targets))
-		unitWeapons.SplashTargs1.SetValid(targetsToString(wFormOne.aoeTargets))
-		unitWeapons.WeapTp1.SetValid(weaponTypes[wFormOne.weaponType.Selected()])
+		unitWeapons.MinRange.SetValid("\"-\"")
+		unitWeapons.Castpt.SetValid("0.5")
+		unitWeapons.Castbsw.SetValid("0.7")
+		unitWeapons.LaunchX.SetValid("0")
+		unitWeapons.LaunchY.SetValid("0")
+		unitWeapons.LaunchZ.SetValid("60")
+		unitWeapons.LaunchSwimZ.SetValid("0")
+		unitWeapons.ImpactZ.SetValid("60")
+		unitWeapons.ImpactSwimZ.SetValid("0")
+		unitWeapons.WeapType1.SetValid("\"_\"")
+		unitWeapons.Targs1.SetValid("\"" + targetsToString(wFormOne.targets) + "\"")
+		unitWeapons.ShowUI1.SetValid("1")
+		unitWeapons.RangeN1.SetValid(wFormOne.weaponRange.Text())
+		unitWeapons.RngTst.SetValid("\"-\"")
+		unitWeapons.RngBuff1.SetValid("250")
 		unitWeapons.AtkType1.SetValid(attackTypes[wFormOne.attackType.Selected()])
-		unitWeapons.BackSw1.SetValid(wFormOne.backswingPoint.Text())
-		unitWeapons.Dmgpt1.SetValid(wFormOne.damagePoint.Text())
-		unitWeapons.Dmgplus1.SetValid(wFormOne.damageBase.Text())
+		unitWeapons.WeapTp1.SetValid(weaponTypes[wFormOne.weaponType.Selected()])
+		unitWeapons.Cool1.SetValid(wFormOne.cooldown.Text())
+		unitWeapons.Mincool1.SetValid("\"-\"")
 		unitWeapons.Dice1.SetValid(wFormOne.damageDice.Text())
 		unitWeapons.Sides1.SetValid(wFormOne.damageSides.Text())
-		unitWeapons.Cool1.SetValid(wFormOne.cooldown.Text())
-		unitWeapons.RangeN1.SetValid(wFormOne.weaponRange.Text())
+		unitWeapons.Dmgplus1.SetValid(wFormOne.damageBase.Text())
+		unitWeapons.DmgUp1.SetValid("\"-\"")
+		unitWeapons.Mindmg1.SetValid("\"-\"")
+		unitWeapons.Avgdmg1.SetValid("\"-\"")
+		unitWeapons.Maxdmg1.SetValid("\"-\"")
+		unitWeapons.Dmgpt1.SetValid(wFormOne.damagePoint.Text())
+		unitWeapons.BackSw1.SetValid(wFormOne.backswingPoint.Text())
 		unitWeapons.Farea1.SetValid(wFormOne.aoeFull.Text())
 		unitWeapons.Harea1.SetValid(wFormOne.aoeMedium.Text())
 		unitWeapons.Qarea1.SetValid(wFormOne.aoeSmall.Text())
-		unitWeapons.Targs2.SetValid(targetsToString(wFormTwo.targets))
-		unitWeapons.SplashTargs2.SetValid(targetsToString(wFormTwo.aoeTargets))
-		unitWeapons.WeapTp2.SetValid(weaponTypes[wFormTwo.weaponType.Selected()])
+		unitWeapons.Hfact1.SetValid(wFormOne.aoeFactorMedium.Text())
+		unitWeapons.Qfact1.SetValid(wFormOne.aoeFactorSmall.Text())
+		unitWeapons.SplashTargs1.SetValid("\"" + targetsToString(wFormOne.aoeTargets) + "\"")
+		unitWeapons.TargCount1.SetValid("1")
+		unitWeapons.DamageLoss1.SetValid(wFormOne.aoeFactorLoss.Text())
+		unitWeapons.SpillDist1.SetValid("0")
+		unitWeapons.SpillRadius1.SetValid("0")
+		unitWeapons.DmgUpg.SetValid("\"-\"")
+		unitWeapons.Dmod1.SetValid("\"-\"")
+		// unitWeapons.DPS.SetValid("") Not required
+		unitWeapons.WeapType2.SetValid("\"_\"")
+		unitWeapons.Targs2.SetValid("\"" + targetsToString(wFormTwo.targets) + "\"")
+		unitWeapons.ShowUI2.SetValid("1")
+		unitWeapons.RangeN2.SetValid(wFormTwo.weaponRange.Text())
+		unitWeapons.RngTst2.SetValid("\"-\"")
+		unitWeapons.RngBuff2.SetValid("\"-\"")
 		unitWeapons.AtkType2.SetValid(attackTypes[wFormTwo.attackType.Selected()])
-		unitWeapons.BackSw2.SetValid(wFormTwo.backswingPoint.Text())
-		unitWeapons.Dmgpt2.SetValid(wFormTwo.damagePoint.Text())
-		unitWeapons.Dmgplus2.SetValid(wFormTwo.damageBase.Text())
+		unitWeapons.WeapTp2.SetValid(weaponTypes[wFormTwo.weaponType.Selected()])
+		unitWeapons.Cool2.SetValid(wFormTwo.cooldown.Text())
+		unitWeapons.Mincool2.SetValid("\"-\"")
 		unitWeapons.Dice2.SetValid(wFormTwo.damageDice.Text())
 		unitWeapons.Sides2.SetValid(wFormTwo.damageSides.Text())
-		unitWeapons.Cool2.SetValid(wFormTwo.cooldown.Text())
-		unitWeapons.RangeN2.SetValid(wFormTwo.weaponRange.Text())
+		unitWeapons.Dmgplus2.SetValid(wFormTwo.damageBase.Text())
+		unitWeapons.DmgUp2.SetValid("\"-\"")
+		unitWeapons.Mindmg2.SetValid("\"-\"")
+		unitWeapons.Avgdmg2.SetValid("\"-\"")
+		unitWeapons.Maxdmg2.SetValid("\"-\"")
+		unitWeapons.Dmgpt2.SetValid(wFormTwo.damagePoint.Text())
+		unitWeapons.BackSw2.SetValid(wFormTwo.backswingPoint.Text())
 		unitWeapons.Farea2.SetValid(wFormTwo.aoeFull.Text())
 		unitWeapons.Harea2.SetValid(wFormTwo.aoeMedium.Text())
 		unitWeapons.Qarea2.SetValid(wFormTwo.aoeSmall.Text())
+		unitWeapons.Hfact2.SetValid(wFormTwo.aoeFactorMedium.Text())
+		unitWeapons.Qfact2.SetValid(wFormTwo.aoeFactorSmall.Text())
+		unitWeapons.SplashTargs2.SetValid("\"" + targetsToString(wFormTwo.aoeTargets) + "\"")
+		unitWeapons.TargCount2.SetValid("1")
+		unitWeapons.DamageLoss2.SetValid(wFormTwo.aoeFactorLoss.Text())
+		unitWeapons.SpillDist2.SetValid("0")
+		unitWeapons.SpillRadius2.SetValid("0")
+		unitWeapons.InBeta.SetValid("0")
 
-		unitBalance.UnitBalanceID.SetValid(uForm.unitId.Text())
+		unitBalance.UnitBalanceID.SetValid("\"" + unitId + "\"")
+		unitBalance.SortBalance.SetValid("\"a3\"")
+		unitBalance.Sort2.SetValid("\"zz\"")
+		// unitBalance.Comment.SetValid("") // Not required
 		unitBalance.Level.SetValid(oForm.level.Text())
-		// unitBalance.Type.SetValid()
+		unitBalance.Type.SetValid("\"" + classificationToString(oForm.classification) + "\"")
 		unitBalance.Goldcost.SetValid(dForm.goldCost.Text())
 		unitBalance.Lumbercost.SetValid(dForm.lumberCost.Text())
+		unitBalance.GoldRep.SetValid("0")
+		unitBalance.LumberRep.SetValid("0")
 		unitBalance.Fmade.SetValid(dForm.foodProduction.Text())
 		unitBalance.Fused.SetValid(dForm.foodCost.Text())
+		unitBalance.Bountydice.SetValid("0")
+		unitBalance.Bountysides.SetValid("0")
+		unitBalance.Bountyplus.SetValid("0")
+		unitBalance.Lumberbountydice.SetValid("0")
+		unitBalance.Lumberbountysides.SetValid("0")
+		unitBalance.Lumberbountyplus.SetValid("0")
+		unitBalance.StockMax.SetValid("0")
+		unitBalance.StockRegen.SetValid("0")
+		unitBalance.StockStart.SetValid("0")
 		unitBalance.HP.SetValid(dForm.health.Text())
-		// unitBalance.RegenHP.SetValid(dForm.healthRegen.Text())
+		unitBalance.RealHP.SetValid(dForm.health.Text()) // Should be changed at some point!
+		unitBalance.RegenHP.SetValid(dForm.healthRegen.Text())
+		unitBalance.RegenType.SetValid("\"always\"")
 		unitBalance.ManaN.SetValid(dForm.mana.Text())
-		// unitBalance.RegenMana.SetValid(dForm.manaRegen.Text())
+		unitBalance.Mana0.SetValid(dForm.mana.Text()) // Should be changed at some point!
+		unitBalance.RegenMana.SetValid(dForm.manaRegen.Text())
 		unitBalance.Def.SetValid(dForm.defense.Text())
-		// unitBalance.DefType.SetValid()
+		unitBalance.DefUp.SetValid("1")
+		unitBalance.Realdef.SetValid(dForm.defense.Text()) // Should be changed at some point!
+		log.Println("selected def type: " + fmt.Sprint(dForm.defenseType.Selected()) + " and it translates to: " + defenseTypes[dForm.defenseType.Selected()])
+		unitBalance.DefType.SetValid(defenseTypes[dForm.defenseType.Selected()])
 		unitBalance.Spd.SetValid(dForm.movementSpeed.Text())
 		unitBalance.MinSpd.SetValid(dForm.movementSpeedMinimum.Text())
 		unitBalance.MaxSpd.SetValid(dForm.movementSpeedMaximum.Text())
-		// unitBalance.Bldtm.SetValid()
-		// unitBalance.Reptm.SetValid()
-		// unitBalance.Sight.SetValid()
-		// unitBalance.Nsight.SetValid()
-		// unitBalance.STR.SetValid()
-		// unitBalance.AGI.SetValid()
-		// unitBalance.INT.SetValid()
-		// unitBalance.Upgrades.SetValid()
+		unitBalance.Bldtm.SetValid(oForm.buildTime.Text())
+		unitBalance.Reptm.SetValid(oForm.repairTime.Text())
+		unitBalance.Sight.SetValid("1800")
+		unitBalance.Nsight.SetValid("800")
+		unitBalance.STR.SetValid("\"-\"")
+		unitBalance.AGI.SetValid("\"-\"")
+		unitBalance.INT.SetValid("\"-\"")
+		// unitBalance.STRplus.SetValid("") // Not required
+		// unitBalance.AGIplus.SetValid("") // Not required
+		// unitBalance.INTplus.SetValid("") // Not required
+		unitBalance.AbilTest.SetValid("\"-\"")
+		unitBalance.Primary.SetValid("\"_\"")
+		unitBalance.Upgrades.SetValid("\"_\"")
+		// unitBalance.Tilesets.SetValid("") // Not required
+		unitBalance.Nbrandom.SetValid("\"-\"")
 		if dForm.isBuilding.Checked() {
 			unitBalance.Isbldg.SetValid("1")
 		} else {
 			unitBalance.Isbldg.SetValid("0")
 		}
+		unitBalance.PreventPlace.SetValid("\"unbuildable\"")
+		unitBalance.RequirePlace.SetValid("\"_\"")
+		unitBalance.Repulse.SetValid("0")
+		unitBalance.RepulseParam.SetValid("0")
+		unitBalance.RepulseGroup.SetValid("0")
+		unitBalance.RepulsePrio.SetValid("0")
+		unitBalance.Collision.SetValid("72")
+		unitBalance.InBeta.SetValid("0")
 
-		unitUi.UnitUIID.SetValid(uForm.unitId.Text())
-		unitUi.File.SetValid(uForm.model.Text())
-		unitUi.UnitSound.SetValid(uForm.soundSet.Text())
-		unitUi.Name.SetValid(uForm.name.Text())
-		// unitUi.UnitClass.SetValid()
-		// unitUi.Special.SetValid()
-		if dForm.isCampaign.Checked() {
+		unitUi.UnitUIID.SetValid("\"" + unitId + "\"")
+		unitUi.SortUI.SetValid("\"a3\"")
+		unitUi.File.SetValid("\"" + uForm.model.Text() + "\"")
+		unitUi.FileVerFlags.SetValid("0")
+		unitUi.UnitSound.SetValid("\"" + uForm.soundSet.Text() + "\"")
+		unitUi.TilesetSpecific.SetValid("0")
+		unitUi.Name.SetValid("\"" + uForm.name.Text() + "\"")
+		// unitUi.UnitClass.SetValid("") // Not required
+		unitUi.Special.SetValid("0")
+		if oForm.canGrid.isCampaign.Checked() {
 			unitUi.Campaign.SetValid("1")
 		} else {
-			unitUi.Campaign.SetValid("1")
+			unitUi.Campaign.SetValid("0")
 		}
-		if oForm.dropsItems.Checked() {
+		unitUi.InEditor.SetValid("1")
+		unitUi.HiddenInEditor.SetValid("0")
+		unitUi.HostilePal.SetValid("\"-\"")
+		if oForm.canGrid.dropsItemsUponDeath.Checked() {
 			unitUi.DropItems.SetValid("1")
 		} else {
 			unitUi.DropItems.SetValid("0")
 		}
+		unitUi.NbmmIcon.SetValid("\"-\"")
+		unitUi.UseClickHelper.SetValid("0")
+		unitUi.HideHeroBar.SetValid("0")
+		unitUi.HideHeroMinimap.SetValid("0")
+		unitUi.HideHeroDeathMsg.SetValid("0")
+		unitUi.HideOnMinimap.SetValid("0")
+		unitUi.Blend.SetValid("0.15")
 		unitUi.Scale.SetValid(uForm.selectionScale.Text())
+		unitUi.ScaleBull.SetValid("1")
+		unitUi.MaxPitch.SetValid("0")
+		unitUi.MaxRoll.SetValid("0")
 		unitUi.ElevPts.SetValid(oForm.elevationSamplePoints.Text())
 		unitUi.ElevRad.SetValid(oForm.elevationSampleRadius.Text())
-		// unitUi.Walk.SetValid()
-		// unitUi.Run.SetValid()
-		// unitUi.TeamColor.SetValid()
-		// unitUi.CustomTeamColor.SetValid()
-		// unitUi.Armor.SetValid()
+		unitUi.FogRad.SetValid("0")
+		unitUi.Walk.SetValid("200")
+		unitUi.Run.SetValid("200")
+		unitUi.SelZ.SetValid("0")
+		unitUi.Weap1.SetValid("\"_\"")
+		unitUi.Weap2.SetValid("\"_\"")
+		// unitUi.TeamColor.SetValid("") // Not required
+		unitUi.CustomTeamColor.SetValid("0")
+		unitUi.Armor.SetValid("\"Flesh\"")
 		unitUi.ModelScale.SetValid(uForm.scalingValue.Text())
 		unitUi.Red.SetValid(fmt.Sprint(uForm.red.Value()))
 		unitUi.Green.SetValid(fmt.Sprint(uForm.green.Value()))
 		unitUi.Blue.SetValid(fmt.Sprint(uForm.blue.Value()))
-		// unitUi.UnitShadow.SetValid()
-		// unitUi.BuildingShadow.SetValid()
-		// unitUi.ShadowW.SetValid()
-		// unitUi.ShadowH.SetValid()
-		// unitUi.ShadowX.SetValid()
-		// unitUi.ShadowY.SetValid()
-		// unitUi.ShadowOnWater.SetValid()
-		// unitUi.SelCircOnWater.SetValid()
+		unitUi.UberSplat.SetValid(ubersplatTypes[uForm.pathingTexture.Selected()])
+		unitUi.UnitShadow.SetValid("\"_\"")
+		unitUi.BuildingShadow.SetValid("\"_\"")
+		unitUi.ShadowW.SetValid("0")
+		unitUi.ShadowH.SetValid("0")
+		unitUi.ShadowX.SetValid("0")
+		unitUi.ShadowY.SetValid("0")
+		unitUi.ShadowOnWater.SetValid("0")
+		unitUi.SelCircOnWater.SetValid("1")
+		unitUi.OccH.SetValid("0")
+		unitUi.InBeta.SetValid("0")
 
-		unitAbilities.UnitAbilID.SetValid(uForm.unitId.Text())
-		// unitAbilities.Auto.SetValid()
-		unitAbilities.AbilList.SetValid(uForm.abilities.Text())
-		// unitAbilities.HeroAbilList.SetValid()
+		unitAbilities.UnitAbilID.SetValid("\"" + unitId + "\"")
+		unitAbilities.SortAbil.SetValid("\"z3\"")
+		unitAbilities.Auto.SetValid("\"_\"")
+		if uForm.abilities.Text() == "" {
+			unitAbilities.AbilList.SetValid("\"_\"")
+		} else {
+			unitAbilities.AbilList.SetValid(uForm.abilities.Text())
+		}
+		// unitAbilities.HeroAbilList.SetValid() // Not required
+		unitAbilities.InBeta.SetValid("0")
 
 		newSlkUnit.UnitData = unitData
 		newSlkUnit.UnitWeapons = unitWeapons
 		newSlkUnit.UnitBalance = unitBalance
 		newSlkUnit.UnitUI = unitUi
 		newSlkUnit.UnitAbilities = unitAbilities
+
+		if _, ok := unitFuncMap[unitId]; !ok {
+			baseUnitMap[unitId] = newSlkUnit
+			unitFuncMap[unitId] = newUnitFunc
+
+			model.RowInserted(mh.rows)
+			mh.slkUnitIdList = append(mh.slkUnitIdList, uForm.unitId.Text())
+			mh.rows = mh.rows + 1
+		} else {
+			baseUnitMap[unitId] = newSlkUnit
+			unitFuncMap[unitId] = newUnitFunc
+		}
+
+		// saveUnitsToFile()
+
+		addUnitButton.Enable()
 	})
-	formVbox.Append(saveUnitButton, false)
+	formVbox.Append(addUnitButton, false)
 	hbox.Append(formVbox, true)
 
 	return hbox
@@ -1983,4 +2443,5 @@ func setupUI() {
 	mainWindow.SetMargined(true)
 
 	mainWindow.Show()
+	fileHBox.Enable()
 }
