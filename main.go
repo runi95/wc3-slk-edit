@@ -2440,7 +2440,6 @@ func makeBasicControlsPage() ui.Control {
 		unitBalance.Def.SetValid(dForm.defense.Text())
 		unitBalance.DefUp.SetValid("1")
 		unitBalance.Realdef.SetValid(dForm.defense.Text()) // Should be changed at some point!
-		log.Println("selected def type: " + fmt.Sprint(dForm.defenseType.Selected()) + " and it translates to: " + defenseTypes[dForm.defenseType.Selected()])
 		unitBalance.DefType.SetValid(defenseTypes[dForm.defenseType.Selected()])
 		unitBalance.Spd.SetValid(dForm.movementSpeed.Text())
 		unitBalance.MinSpd.SetValid(dForm.movementSpeedMinimum.Text())
