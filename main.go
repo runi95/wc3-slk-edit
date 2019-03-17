@@ -252,16 +252,26 @@ func setConfig() {
 	if err != nil {
 		log.Println(err)
 
-		absolutePath, err := filepath.Abs("./input")
-		if err != nil {
-			log.Println(err)
-
-			configuration = config{"./input", "./input"}
-			return
-		}
-
-		configuration = config{absolutePath, absolutePath}
+		configuration = config{"./input", "./input"}
 	}
+
+	absolutePathInDir, err := filepath.Abs(configuration.InDir)
+	if err != nil {
+		log.Println(err)
+
+		return
+	}
+
+	configuration.InDir = absolutePathInDir
+
+	absolutePathOutDir, err := filepath.Abs(configuration.OutDir)
+	if err != nil {
+		log.Println(err)
+
+		return
+	}
+
+	configuration.OutDir = absolutePathOutDir
 }
 
 func main() {
