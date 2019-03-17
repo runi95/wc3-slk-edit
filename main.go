@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/andlabs/ui"
 	"github.com/runi95/wts-parser/models"
@@ -9,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -36,9 +38,18 @@ var deathTypes = []string{"0", "1", "2", "3"}
 var defenseTypes = []string{"\"normal\"", "\"small\"", "\"medium\"", "\"large\"", "\"fort\"", "\"hero\"", "\"divine\"", "\"unarmored\""}
 var ubersplatTypes = []string{"\"UMED\"", "\"EMDB\"", "\"HMED\"", "\"OMED\"", "\"EMDA\"", "\"ESMA\"", "\"HSMA\"", "\"HCAS\"", "\"NDGS\"", "\"DPSE\"", "\"DPSW\"", "\"NGOL\"", "\"OLAR\"", "\"ULAR\"", "\"HTOW\"", "\"ESMB\"", "\"OSMA\"", "\"HLAR\"", "\"USMA\"", "\"NLAR\""}
 
-var inputdir string
+var configuration config
+var inputDirectory string
+var outputDirectory string
+
+const CONFIG_PATH = "./config.json"
 
 // const MAXINT = 9999999
+
+type config struct {
+	InDir  string
+	OutDir string
+}
 
 type modelHandler struct {
 	rows          int
@@ -201,21 +212,72 @@ type otherForm struct {
 	race                  *ui.Combobox
 }
 
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+
+	if err == nil {
+		return true, nil
+	}
+
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+
+	return true, err
+}
+
+func loadConfig() error {
+	configExists, err := exists(CONFIG_PATH)
+	if configExists && err == nil {
+		configFile, err := ioutil.ReadFile(CONFIG_PATH)
+		if err != nil {
+			return err
+		}
+
+		err = json.Unmarshal(configFile, &configuration)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	return fmt.Errorf("%s does not exist", CONFIG_PATH)
+}
+
+func setConfig() {
+	err := loadConfig()
+	if err != nil {
+		log.Println(err)
+
+		absolutePath, err := filepath.Abs("./input")
+		if err != nil {
+			log.Println(err)
+
+			configuration = config{"./input", "./input"}
+			return
+		}
+
+		configuration = config{absolutePath, absolutePath}
+	}
+}
+
 func main() {
 	log.Println("Reading UnitAbilities.slk...")
 
 	if len(os.Args) > 1 {
-		inputdir = os.Args[1]
+		inputDirectory = os.Args[1]
+		outputDirectory = os.Args[2]
 	} else {
-		dir, err := os.Getwd()
-		if err != nil {
-			log.Println(err)
-		} else {
-			inputdir = dir + "/input"
-		}
+		setConfig()
+
+		inputDirectory = configuration.InDir
+		outputDirectory = configuration.OutDir
 	}
 
-	unitAbilitiesBytes, err := ioutil.ReadFile(inputdir + "/UnitAbilities.slk")
+	unitAbilitiesBytes, err := ioutil.ReadFile(inputDirectory + "/UnitAbilities.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -225,7 +287,7 @@ func main() {
 
 	log.Println("Reading UnitData.slk...")
 
-	unitDataBytes, err := ioutil.ReadFile(inputdir + "/UnitData.slk")
+	unitDataBytes, err := ioutil.ReadFile(inputDirectory + "/UnitData.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -235,7 +297,7 @@ func main() {
 
 	log.Println("Reading UnitUI.slk...")
 
-	unitUIBytes, err := ioutil.ReadFile(inputdir + "/UnitUI.slk")
+	unitUIBytes, err := ioutil.ReadFile(inputDirectory + "/UnitUI.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -245,7 +307,7 @@ func main() {
 
 	log.Println("Reading UnitWeapons.slk...")
 
-	unitWeaponsBytes, err := ioutil.ReadFile(inputdir + "/UnitWeapons.slk")
+	unitWeaponsBytes, err := ioutil.ReadFile(inputDirectory + "/UnitWeapons.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -255,7 +317,7 @@ func main() {
 
 	log.Println("Reading UnitBalance.slk...")
 
-	unitBalanceBytes, err := ioutil.ReadFile(inputdir + "/UnitBalance.slk")
+	unitBalanceBytes, err := ioutil.ReadFile(inputDirectory + "/UnitBalance.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -265,7 +327,7 @@ func main() {
 
 	log.Println("Reading CampaignUnitFunc.txt...")
 
-	campaignUnitFuncBytes, err := ioutil.ReadFile(inputdir + "/CampaignUnitFunc.txt")
+	campaignUnitFuncBytes, err := ioutil.ReadFile(inputDirectory + "/CampaignUnitFunc.txt")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -2110,7 +2172,7 @@ func makeBasicControlsPage() ui.Control {
 	*/
 	fileHBox = ui.NewHorizontalBox()
 	fileEntry := ui.NewEntry()
-	fileEntry.SetText(inputdir)
+	fileEntry.SetText(outputDirectory)
 	fileButton := ui.NewButton("...")
 	fileButton.OnClicked(func(*ui.Button) {
 		filename := ui.OpenFile(mainWindow)
