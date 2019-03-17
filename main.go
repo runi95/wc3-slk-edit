@@ -36,6 +36,7 @@ var deathTypes = []string{"0", "1", "2", "3"}
 var defenseTypes = []string{"\"normal\"", "\"small\"", "\"medium\"", "\"large\"", "\"fort\"", "\"hero\"", "\"divine\"", "\"unarmored\""}
 var ubersplatTypes = []string{"\"UMED\"", "\"EMDB\"", "\"HMED\"", "\"OMED\"", "\"EMDA\"", "\"ESMA\"", "\"HSMA\"", "\"HCAS\"", "\"NDGS\"", "\"DPSE\"", "\"DPSW\"", "\"NGOL\"", "\"OLAR\"", "\"ULAR\"", "\"HTOW\"", "\"ESMB\"", "\"OSMA\"", "\"HLAR\"", "\"USMA\"", "\"NLAR\""}
 
+var	inputdir = "input"
 // const MAXINT = 9999999
 
 type modelHandler struct {
@@ -202,7 +203,13 @@ type otherForm struct {
 func main() {
 	log.Println("Reading UnitAbilities.slk...")
 
-	unitAbilitiesBytes, err := ioutil.ReadFile("input/UnitAbilities.slk")
+	
+	if len(os.Args) > 1 {
+		inputdir = os.Args[1]
+	}
+	
+
+	unitAbilitiesBytes, err := ioutil.ReadFile(inputdir+"/UnitAbilities.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -212,7 +219,7 @@ func main() {
 
 	log.Println("Reading UnitData.slk...")
 
-	unitDataBytes, err := ioutil.ReadFile("input/UnitData.slk")
+	unitDataBytes, err := ioutil.ReadFile(inputdir+"/UnitData.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -222,7 +229,7 @@ func main() {
 
 	log.Println("Reading UnitUI.slk...")
 
-	unitUIBytes, err := ioutil.ReadFile("input/UnitUI.slk")
+	unitUIBytes, err := ioutil.ReadFile(inputdir+"/UnitUI.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -232,7 +239,7 @@ func main() {
 
 	log.Println("Reading UnitWeapons.slk...")
 
-	unitWeaponsBytes, err := ioutil.ReadFile("input/UnitWeapons.slk")
+	unitWeaponsBytes, err := ioutil.ReadFile(inputdir+"/UnitWeapons.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -242,7 +249,7 @@ func main() {
 
 	log.Println("Reading UnitBalance.slk...")
 
-	unitBalanceBytes, err := ioutil.ReadFile("input/UnitBalance.slk")
+	unitBalanceBytes, err := ioutil.ReadFile(inputdir+"/UnitBalance.slk")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -252,7 +259,7 @@ func main() {
 
 	log.Println("Reading CampaignUnitFunc.txt...")
 
-	campaignUnitFuncBytes, err := ioutil.ReadFile("input/CampaignUnitFunc.txt")
+	campaignUnitFuncBytes, err := ioutil.ReadFile(inputdir+"/CampaignUnitFunc.txt")
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -2102,7 +2109,7 @@ func makeBasicControlsPage() ui.Control {
 		log.Println(err)
 		fileEntry.SetText("input")
 	} else {
-		fileEntry.SetText(dir + "/input")
+		fileEntry.SetText(inputdir)
 	}
 	fileButton := ui.NewButton("...")
 	fileButton.OnClicked(func(*ui.Button) {
