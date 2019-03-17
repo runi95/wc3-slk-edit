@@ -14,6 +14,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	_ "github.com/andlabs/ui/winmanifest" // Adds Windows compatibility
 )
 
 var baseUnitMap map[string]*models.SLKUnit
@@ -287,7 +289,7 @@ func main() {
 		outputDirectory = configuration.OutDir
 	}
 
-	unitAbilitiesBytes, err := ioutil.ReadFile(inputDirectory + "/UnitAbilities.slk")
+	unitAbilitiesBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "UnitAbilities.slk"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -297,7 +299,7 @@ func main() {
 
 	log.Println("Reading UnitData.slk...")
 
-	unitDataBytes, err := ioutil.ReadFile(inputDirectory + "/UnitData.slk")
+	unitDataBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "UnitData.slk"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -307,7 +309,7 @@ func main() {
 
 	log.Println("Reading UnitUI.slk...")
 
-	unitUIBytes, err := ioutil.ReadFile(inputDirectory + "/UnitUI.slk")
+	unitUIBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "UnitUI.slk"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -317,7 +319,7 @@ func main() {
 
 	log.Println("Reading UnitWeapons.slk...")
 
-	unitWeaponsBytes, err := ioutil.ReadFile(inputDirectory + "/UnitWeapons.slk")
+	unitWeaponsBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "UnitWeapons.slk"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -327,7 +329,7 @@ func main() {
 
 	log.Println("Reading UnitBalance.slk...")
 
-	unitBalanceBytes, err := ioutil.ReadFile(inputDirectory + "/UnitBalance.slk")
+	unitBalanceBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "UnitBalance.slk"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
@@ -337,7 +339,7 @@ func main() {
 
 	log.Println("Reading CampaignUnitFunc.txt...")
 
-	campaignUnitFuncBytes, err := ioutil.ReadFile(inputDirectory + "/CampaignUnitFunc.txt")
+	campaignUnitFuncBytes, err := ioutil.ReadFile(filepath.Join(inputDirectory, "CampaignUnitFunc.txt"))
 	if err != nil {
 		log.Println(err)
 		os.Exit(10)
