@@ -420,6 +420,11 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	unit := baseUnitMap[mh.slkUnitIdList[row]]
 	unitFunc := unitFuncMap[mh.slkUnitIdList[row]]
 
+	missileArtSplit := strings.Split(unitFunc.Missileart.String, ",")
+	missileHomingSplit := strings.Split(unitFunc.Missilehoming.String, ",")
+	missileSpeedSplit := strings.Split(unitFunc.Missilespeed.String, ",")
+	// missileArcSplit := strings.Split(unitFunc.Missilearc.String, ",")
+
 	// Set UI Form
 	uForm.name.SetText(unitFunc.Name.String)
 	uForm.unitId.SetText(unitFunc.UnitId)
@@ -499,13 +504,25 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	} else {
 		wFormOne.enableWeapon.SetChecked(false)
 	}
-	wFormOne.projectile.SetText(unitFunc.Missileart.String)
-	if unitFunc.Missilehoming.String == "1" {
-		wFormOne.projectileHoming.SetChecked(true)
+	if len(missileArtSplit) > 0 {
+		wFormOne.projectile.SetText(missileArtSplit[0])
 	} else {
-		wFormOne.projectileHoming.SetChecked(false)
+		wFormOne.projectile.SetText("-")
 	}
-	wFormOne.projectileSpeed.SetText(unitFunc.Missilespeed.String)
+	if len(missileHomingSplit) > 0 {
+		if missileHomingSplit[0] == "1" {
+			wFormOne.projectileHoming.SetChecked(true)
+		} else {
+			wFormOne.projectileHoming.SetChecked(false)
+		}
+	} else {
+		wFormOne.projectileHoming.SetChecked(true)
+	}
+	if len(missileSpeedSplit) > 0 {
+		wFormOne.projectileSpeed.SetText(missileSpeedSplit[0])
+	} else {
+		wFormOne.projectileSpeed.SetText("1200")
+	}
 	if unit.UnitWeapons.Farea1.Valid && unit.UnitWeapons.Farea1.String != "\"-\"" {
 		wFormOne.aoeFull.SetText(unit.UnitWeapons.Farea1.String)
 	} else {
@@ -828,13 +845,25 @@ func (mh *modelHandler) SetCellValue(m *ui.TableModel, row, column int, value ui
 	} else {
 		wFormTwo.enableWeapon.SetChecked(false)
 	}
-	wFormTwo.projectile.SetText(unitFunc.Missileart.String)
-	if unitFunc.Missilehoming.String == "1" {
-		wFormTwo.projectileHoming.SetChecked(true)
+	if len(missileArtSplit) > 1 {
+		wFormTwo.projectile.SetText(missileArtSplit[1])
 	} else {
-		wFormTwo.projectileHoming.SetChecked(false)
+		wFormTwo.projectile.SetText("-")
 	}
-	wFormTwo.projectileSpeed.SetText(unitFunc.Missilespeed.String)
+	if len(missileHomingSplit) > 1 {
+		if missileHomingSplit[1] == "1" {
+			wFormTwo.projectileHoming.SetChecked(true)
+		} else {
+			wFormTwo.projectileHoming.SetChecked(false)
+		}
+	} else {
+		wFormTwo.projectileHoming.SetChecked(true)
+	}
+	if len(missileSpeedSplit) > 1 {
+		wFormTwo.projectileSpeed.SetText(missileSpeedSplit[1])
+	} else {
+		wFormTwo.projectileSpeed.SetText("1200")
+	}
 	if unit.UnitWeapons.Farea2.Valid && unit.UnitWeapons.Farea2.String != "\"-\"" {
 		wFormTwo.aoeFull.SetText(unit.UnitWeapons.Farea2.String)
 	} else {
